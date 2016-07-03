@@ -1,0 +1,5 @@
+[name]
+DREI Sterne!
+
+[description]
+Du hast drei Sterne gewonnen!

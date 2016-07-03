@@ -1,0 +1,26 @@
+.iconButton {
+	/*background-color:#EEE;*/
+	width:110px;
+	margin:10px;
+	text-align: center;
+	/*border-radius: 4px;*/
+	/*box-shadow: #CCC 3px 3px 3px;*/
+	display: inline-block; vertical-align: top;
+	padding: 5px;
+}
+
+.chapterBlock {
+	background-color:#EEE;
+	border-radius: 4px;
+	box-shadow: #CCC 3px 3px 3px;
+	margin:10px;
+	padding: 5px;
+}
+
+h1 {
+	font: 72px serif;
+}
+
+
+
+
