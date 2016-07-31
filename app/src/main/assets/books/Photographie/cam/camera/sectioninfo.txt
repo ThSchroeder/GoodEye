@@ -1,0 +1,12 @@
+sectionname: Überblick Aufbau und Bedienelemente
+page: intro
+page: onoff
+page: display
+page: trigger
+page: zoom
+page: flash
+page: mode
+page: obj
+page: memory
+
+

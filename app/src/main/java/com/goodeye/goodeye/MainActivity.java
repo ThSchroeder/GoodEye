@@ -2,8 +2,12 @@ package com.goodeye.goodeye;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.AssetManager;
+import android.hardware.Camera;
+import android.net.Uri;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,12 +15,19 @@ import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.TextView;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,12 +36,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
 
+
+
+import android.content.Intent;
+import android.os.Environment;
+import android.provider.MediaStore;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 
@@ -40,15 +60,64 @@ import java.util.Stack;
  * status bar and navigation/system bar) with user interaction.
  */
 public class MainActivity extends AppCompatActivity {
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.goodeye.goodeye/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.goodeye.goodeye/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
+
     // TODO: remove this class when Haos class is ready
     public class MyAppInfoStorage extends AppInfoStorage {
+        public void ClearAllData(){
+            writeToFile("unlocked.txt", "");
+        }
+
         private void writeToFile(String fileName, String data) {
             try {
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
                 outputStreamWriter.write(data);
                 outputStreamWriter.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Log.e("myTag", "File write failed: " + e.toString());
             }
 
@@ -61,21 +130,20 @@ public class MainActivity extends AppCompatActivity {
             try {
                 InputStream inputStream = openFileInput(fileName);
 
-                if ( inputStream != null ) {
+                if (inputStream != null) {
                     InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                     String receiveString = "";
                     StringBuilder stringBuilder = new StringBuilder();
 
-                    while ( (receiveString = bufferedReader.readLine()) != null ) {
-                        stringBuilder.append(receiveString+"\n");
+                    while ((receiveString = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(receiveString + "\n");
                     }
 
                     inputStream.close();
                     ret = stringBuilder.toString();
                 }
-            }
-            catch (FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 Log.e("myTag", "File not found: " + e.toString());
             } catch (IOException e) {
                 Log.e("myTag", "Can not read file: " + e.toString());
@@ -83,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
             return ret;
         }
+
         public void UnlockID(String id) {
             id = id.trim().replace("\n", "");
             String s = readFromFile("unlocked.txt");
@@ -197,58 +266,64 @@ public class MainActivity extends AppCompatActivity {
             if (url.startsWith("goodeyeapi://")) {
                 String message = url.replace("goodeyeapi://", "");
                 String[] args = message.split("~~");
-                if(args.length == 0){
+                if (args.length == 0) {
                     return true;
-                } else if(args[0].equals("openStartPage")) {
+                } else if (args[0].equals("openStartPage")) {
                     OpenStartPage();
-                } else if(args[0].equals("buildStartPage")) {
+                } else if (args[0].equals("buildStartPage")) {
                     BuildStartPage();
-                } else if(args[0].equals("buildPage")) {
+                } else if (args[0].equals("buildPage")) {
                     BuildPage();
-                } else if(args[0].equals("openAchievementsMenu")) {
+                } else if (args[0].equals("openAchievementsMenu")) {
                     OpenAchievements();
-                } else if(args[0].equals("openChallengesMenu")) {
+                } else if (args[0].equals("openChallengesMenu")) {
                     OpenGames();
-                } else if(args[0].equals("openBook")) {
+                } else if (args[0].equals("openBook")) {
                     if (GetBookName(args[1]).equals("")) {
-                        MyWebView.loadUrl("javascript:goodeyeAPI.error(\"book not found \\\""+args[1]+"\\\"\");");
+                        MyWebView.loadUrl("javascript:goodeyeAPI.error(\"book not found \\\"" + args[1] + "\\\"\");");
                     } else {
                         OpenBook(args[1]);
                     }
-                } else if(args[0].equals("openSection")) {
+                } else if (args[0].equals("openSection")) {
                     OpenSection(args[1], args[2]);
-                } else if(args[0].equals("unlockSection")) { //TODO (???)
-                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"unlockSection "+args[1]+" "+args[2]+"\");");
-                } else if(args[0].equals("openChapter")) { //TODO (???)
-                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"openChapter "+args[1]+"\");");
-                } else if(args[0].equals("unlockChapter")) { //TODO (???)
-                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"unlockChapter "+args[1]+"\");");
-                } else if(args[0].equals("unlockNextChapter")) { //TODO (???)
+                } else if (args[0].equals("unlockSection")) { //TODO (???)
+                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"unlockSection " + args[1] + " " + args[2] + "\");");
+                } else if (args[0].equals("openChapter")) { //TODO (???)
+                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"openChapter " + args[1] + "\");");
+                } else if (args[0].equals("unlockChapter")) { //TODO (???)
+                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"unlockChapter " + args[1] + "\");");
+                } else if (args[0].equals("unlockNextChapter")) { //TODO (???)
                     MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"unlockNextChapter\");");
-                } else if(args[0].equals("unlockGame")) {
+                } else if (args[0].equals("unlockGame")) {
                     UnlockGame(args[1]);
-                } else if(args[0].equals("unlockAchievement")) {
-                    UnlockAchievement(args[1]);
-                } else if(args[0].equals("nextPage")) {
+                } else if (args[0].equals("unlockAchievement")) {
+                    UnlockAchievement(args[1], "noName");
+                } else if (args[0].equals("nextPage")) {
                     NextPage();
-                } else if(args[0].equals("previousPage")) { //TODO (???)
+                } else if (args[0].equals("previousPage")) { //TODO (???)
                     PreviousPage();
-                } else if(args[0].equals("openPage")) {
+                } else if (args[0].equals("openPage")) {
                     OpenPage(args[1]);
-                } else if(args[0].equals("reloadPage")) {
+                } else if (args[0].equals("reloadPage")) {
                     ReloadPage();
-                } else if(args[0].equals("message")) { //TODO (???)
-                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"message "+args[1]+"\");");
-                } else if(args[0].equals("loose")) {
+                } else if (args[0].equals("message")) { //TODO (???)
+                    //MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"message " + args[1] + "\");");
+                    Notify(args[1]);
+                } else if (args[0].equals("loose")) {
                     MyWebView.loadUrl("file:///android_asset/endscreen/index.html?type=loose");
-                } else if(args[0].equals("win")) {
+                } else if (args[0].equals("win")) {
                     MyWebView.loadUrl("file:///android_asset/endscreen/index.html?type=win");
-                } else if(args[0].equals("winStarRating")) {
-                    MyWebView.loadUrl("file:///android_asset/endscreen/index.html?type=stars&stars="+args[1]);
-                } else if(args[0].equals("winPercentage")) { //TODO !!! (???)
-                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"winPercentage "+args[1]+"\");");
+                } else if (args[0].equals("winStarRating")) {
+                    MyWebView.loadUrl("file:///android_asset/endscreen/index.html?type=stars&stars=" + args[1]);
+                } else if (args[0].equals("winPercentage")) { //TODO !!! (???)
+                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"winPercentage " + args[1] + "\");");
+                } else if (args[0].equals("takePhoto")) {
+                    //MyWebView.setVisibility(View.INVISIBLE);
+                    //MyPhotoView.setVisibility(View.VISIBLE);
+                    //dispatchTakePictureIntent(MyPhotoView);
+                    MyWebView.loadUrl("javascript:goodeyeAPI.debugLog(\"[TAKE PHOTO]\");");
                 } else {
-                    MyWebView.loadUrl("javascript:goodeyeAPI.error(\"unknown command: "+args[0]+"\");");
+                    MyWebView.loadUrl("javascript:goodeyeAPI.error(\"unknown command: " + args[0] + "\");");
                 }
                 return true;
             }
@@ -260,8 +335,10 @@ public class MainActivity extends AppCompatActivity {
     //==============================================================================================
 
     // TODO: this is just a debugging solution ... -> correct this when ready
-    //public AppInfoStorage infoStorage = new AppInfoStorage();
+    ////public AppInfoStorage infoStorage = new AppInfoStorage();
     public MyAppInfoStorage infoStorage = new MyAppInfoStorage();
+    //public DatenUse infoStorage;
+
 
     public String menuTitle;
     public String menuIconPath;
@@ -280,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
      */
 
     String SectionID(String book, String chapter, String section) {
-        return "SECTION:books/"+book+"/"+chapter+"/"+section+"/";
+        return "SECTION:books/" + book + "/" + chapter + "/" + section + "/";
     }
 
 
@@ -300,13 +377,14 @@ public class MainActivity extends AppCompatActivity {
         menuIconPath = "file:///android_asset/res/book.png";
         currentID = bookID;
         modeStack.push("chapterView");
-        modeStack.clear(); modeStack.push("chapterView");
+        modeStack.clear();
+        modeStack.push("chapterView");
     }
 
     public void OpenSection(String chapter, String section) {
 
         nextSectionID = "";
-        String c = LoadString("books/"+currentBook+"/"+chapter+"/chapterinfo.txt");
+        String c = LoadString("books/" + currentBook + "/" + chapter + "/chapterinfo.txt");
         String[] clines = c.split("\n");
         boolean found = false;
         for (String l : clines) {
@@ -325,11 +403,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        currentSectionPath = "books/"+currentBook+"/"+chapter+"/"+section+"/";
-        modeStack.clear(); modeStack.push("chapterView"); modeStack.push("sectionView");
+        currentSectionPath = "books/" + currentBook + "/" + chapter + "/" + section + "/";
+        modeStack.clear();
+        modeStack.push("chapterView");
+        modeStack.push("sectionView");
 
         currentPages.clear();
-        String f = LoadString(currentSectionPath+"sectioninfo.txt");
+        String f = LoadString(currentSectionPath + "sectioninfo.txt");
         String[] lines = f.split("\n");
         for (String l : lines) {
             l = l.trim();
@@ -337,13 +417,13 @@ public class MainActivity extends AppCompatActivity {
             String[] args = l.split(":");
             if (args.length < 2) continue;
             if (args[0].trim().equals("page")) {
-                currentPages.add(currentSectionPath+args[1].trim());
+                currentPages.add(currentSectionPath + args[1].trim());
             }
         }
 
         currentPageIndex = 0;
 
-        MyWebView.loadUrl("file:///android_asset/"+currentPages.get(currentPageIndex)+"/index.html");
+        MyWebView.loadUrl("file:///android_asset/" + currentPages.get(currentPageIndex) + "/index.html");
     }
 
 
@@ -352,7 +432,8 @@ public class MainActivity extends AppCompatActivity {
         buildPageTarget = "achievementsPage";
         menuTitle = "Achievements";
         menuIconPath = "file:///android_asset/res/achievements.png";
-        modeStack.clear(); modeStack.push("achievementsView");
+        modeStack.clear();
+        modeStack.push("achievementsView");
     }
 
     public void OpenGames() {
@@ -360,7 +441,8 @@ public class MainActivity extends AppCompatActivity {
         buildPageTarget = "gamesPage";
         menuTitle = "Challenges";
         menuIconPath = "file:///android_asset/res/challenges.png";
-        modeStack.clear(); modeStack.push("challengesView");
+        modeStack.clear();
+        modeStack.push("challengesView");
     }
 
 
@@ -374,14 +456,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         currentPageIndex++;
-        if(currentPageIndex >= currentPages.size()) {
+        if (currentPageIndex >= currentPages.size()) {
             OpenBook(currentBook);
             if (!(nextSectionID.equals("")) && !(infoStorage.IsUnlockedID(nextSectionID))) {
                 infoStorage.UnlockID(nextSectionID);
             }
             return;
         }
-        MyWebView.loadUrl("file:///android_asset/"+currentPages.get(currentPageIndex)+"/index.html");
+        MyWebView.loadUrl("file:///android_asset/" + currentPages.get(currentPageIndex) + "/index.html");
     }
 
     void PreviousPage() {
@@ -392,8 +474,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        currentPageIndex--; if (currentPageIndex < 0) currentPageIndex = 0;
-        if(currentPageIndex >= currentPages.size()) {
+        currentPageIndex--;
+        if (currentPageIndex < 0) currentPageIndex = 0;
+        if (currentPageIndex >= currentPages.size()) {
             OpenBook(currentBook);
             if (!(nextSectionID.equals("")) && !(infoStorage.IsUnlockedID(nextSectionID))) {
                 infoStorage.UnlockID(nextSectionID);
@@ -401,14 +484,14 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        MyWebView.loadUrl("file:///android_asset/"+currentPages.get(currentPageIndex)+"/index.html");
+        MyWebView.loadUrl("file:///android_asset/" + currentPages.get(currentPageIndex) + "/index.html");
     }
 
     void OpenPage(String pageID) {
         String pid = pageID;
-        pageID = currentSectionPath+pageID;
+        pageID = currentSectionPath + pageID;
         boolean found = false;
-        for (int i=0; i<currentPages.size(); ++i) {
+        for (int i = 0; i < currentPages.size(); ++i) {
             if (currentPages.get(i).equals(pageID)) {
                 found = true;
                 currentPageIndex = i;
@@ -416,10 +499,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (!found) {
-            MyWebView.loadUrl("javascript:goodeyeAPI.error(\"page not found: \\\""+pid+"\\\"\");");
+            MyWebView.loadUrl("javascript:goodeyeAPI.error(\"page not found: \\\"" + pid + "\\\"\");");
             return;
         }
-        MyWebView.loadUrl("file:///android_asset/"+currentPages.get(currentPageIndex)+"/index.html");
+        MyWebView.loadUrl("file:///android_asset/" + currentPages.get(currentPageIndex) + "/index.html");
     }
 
     void ReloadPage() {
@@ -427,35 +510,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // example: UnlockAchievement("helloWorld") -> unlocks "ACHIEVEMENT:achievements/helloWorld/"
-    void UnlockAchievement(String achievementID) {
-        achievementID = "ACHIEVEMENT:achievements/"+achievementID+"/";
-        if(infoStorage.IsUnlockedID(achievementID)) return;
+    void UnlockAchievement(String achievementID, String name) {
+        achievementID = "ACHIEVEMENT:achievements/" + achievementID + "/";
+        if (infoStorage.IsUnlockedID(achievementID)) return;
         infoStorage.UnlockID(achievementID);
+        //Notify("Achievement freigeschaltet: "+name);
     }
 
     void UnlockGame(String gameID) {
-        gameID = "GAME:games/"+gameID+"/";
-        if(infoStorage.IsUnlockedID(gameID)) return;
+        gameID = "GAME:games/" + gameID + "/";
+        if (infoStorage.IsUnlockedID(gameID)) return;
         infoStorage.UnlockID(gameID);
     }
 
     //----------------------------------------------------------------------------------------------
     public void BuildStartPage() {
-        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\""+menuIconPath+"\");");
-        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\""+menuTitle+"\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\"" + menuIconPath + "\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\"" + menuTitle + "\");");
         List<String> list = GetSubFolders("books");
         for (String book : list) {
-            MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openBook('"+book+"')\\\"> <img src=\\\"file:///android_asset/res/book.png\\\"/><br/>"+GetBookName(book)+"</div>\");");
+            MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openBook('" + book + "')\\\"> <img src=\\\"file:///android_asset/res/book.png\\\"/><br/>" + GetBookName(book) + "</div>\");");
         }
-        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openChallengesMenu()\\\"> <img src=\\\"file:///android_asset/res/challenges.png\\\"/><br/>challenges</div>\");");
-        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openAchievementsMenu()\\\"> <img src=\\\"file:///android_asset/res/achievements.png\\\"/><br/>achievements</div>\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openChallengesMenu()\\\"> <img src=\\\"file:///android_asset/res/challenges.png\\\"/><br/>Challenges</div>\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openAchievementsMenu()\\\"> <img src=\\\"file:///android_asset/res/achievements.png\\\"/><br/>Achievements</div>\");");
     }
 
     public void BuildBookPage() {
         currentBook = currentID;
-        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\""+menuIconPath+"\");");
-        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\""+menuTitle+"\");");
-        String info = LoadString("books/"+currentID+"/bookinfo.txt");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\"" + menuIconPath + "\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\"" + menuTitle + "\");");
+        String info = LoadString("books/" + currentID + "/bookinfo.txt");
         String[] lines = info.split("\n");
         String tempContent = "";
         for (String l : lines) {
@@ -466,10 +550,10 @@ public class MainActivity extends AppCompatActivity {
             if (args[0].trim().equals("chapter") && args.length >= 2) {
                 String chapterID = args[1].trim();
                 String chapterName = GetChapterName(currentID, chapterID);
-                tempContent = "<div class='chapterBlock'><h2>"+chapterName+"</h2>";
+                tempContent = "<div class='chapterBlock'><h2>" + chapterName + "</h2>";
 
                 //--- read chapter sections ---
-                String chapInfo = LoadString("books/"+currentID+"/"+chapterID+"/chapterinfo.txt");
+                String chapInfo = LoadString("books/" + currentID + "/" + chapterID + "/chapterinfo.txt");
                 String[] chapLines = chapInfo.split("\n");
                 for (String cl : chapLines) {
                     cl = cl.trim();
@@ -478,8 +562,8 @@ public class MainActivity extends AppCompatActivity {
                     if (chargs[0].trim().equals("section") && chargs.length >= 2) {
                         String sectionID = chargs[1].trim();
                         String sectionName = GetSectionName(currentID, chapterID, sectionID);
-                        if (firstSection || infoStorage.IsUnlockedID("SECTION:books/"+currentID+"/"+chapterID+"/"+sectionID+"/")) {
-                            tempContent += "<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openSection('"+chapterID+"','"+sectionID+"')\\\"> <img src=\\\"file:///android_asset/res/section.png\\\"/><br/>" + sectionName + "</div>";
+                        if (firstSection || infoStorage.IsUnlockedID("SECTION:books/" + currentID + "/" + chapterID + "/" + sectionID + "/")) {
+                            tempContent += "<div class=\\\"iconButton\\\" onclick=\\\"goodeyeAPI.openSection('" + chapterID + "','" + sectionID + "')\\\"> <img src=\\\"file:///android_asset/res/section.png\\\"/><br/>" + sectionName + "</div>";
                             if (firstSection) firstSection = false;
                         } else {
                             tempContent += "<div class=\\\"iconButton\\\"> <img src=\\\"file:///android_asset/res/locked.png\\\"/><br/>" + sectionName + "</div>";
@@ -488,14 +572,14 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 tempContent += "</div>";
-                MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\""+tempContent+"\");");
+                MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"" + tempContent + "\");");
             }
         }
     }
 
     public void BuildAchievementsPage() {
-        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\""+menuIconPath+"\");");
-        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\""+menuTitle+"\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\"" + menuIconPath + "\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\"" + menuTitle + "\");");
         String tempContent = "";
 
         tempContent += "<table>";
@@ -503,8 +587,8 @@ public class MainActivity extends AppCompatActivity {
         for (String id : allIDs) {
             if (id.startsWith("ACHIEVEMENT:")) {
                 id = id.trim().replace("ACHIEVEMENT:", "");
-                tempContent += "<tr><td><img src='file:///android_asset/"+id+"icon.png'/></td><td>";
-                String ainfo = LoadString(id+"achievementinfo.txt");
+                tempContent += "<tr><td><img src='file:///android_asset/" + id + "icon.png'/></td><td>";
+                String ainfo = LoadString(id + "achievementinfo.txt");
                 String[] alines = ainfo.split("\n");
                 int mode = 0;
                 String aname = id;
@@ -524,11 +608,11 @@ public class MainActivity extends AppCompatActivity {
                             aname = l;
                             break;
                         case 2:
-                            adescription += l+" ";
+                            adescription += l + " ";
                             break;
                     }
                 }
-                tempContent += "<b>"+aname+"</b><p>"+adescription+"</p>";
+                tempContent += "<b>" + aname + "</b><p>" + adescription + "</p>";
 
 
                 tempContent += "</td></tr>";
@@ -536,12 +620,12 @@ public class MainActivity extends AppCompatActivity {
         }
         tempContent += "</table>";
 
-        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\""+tempContent+"\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"" + tempContent + "\");");
     }
 
     public void BuildGamesPage() {
-        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\""+menuIconPath+"\");");
-        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\""+menuTitle+"\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setIcon(\"" + menuIconPath + "\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.setTitle(\"" + menuTitle + "\");");
         String tempContent = "";
 
         List<String> allIDs = infoStorage.GetAllUnlockedIDs();
@@ -549,23 +633,23 @@ public class MainActivity extends AppCompatActivity {
             if (id.startsWith("GAME:")) {
                 id = id.trim().replace("GAME:", "");
 
-                String ainfo = LoadString(id+"gameinfo.txt");
+                String ainfo = LoadString(id + "gameinfo.txt");
                 ainfo = ainfo.trim();
                 String[] args = ainfo.split(":");
                 String gameName = "NoName";
                 if (args.length >= 2) gameName = args[1].trim();
 
-                tempContent += "<div class=\\\"iconButton\\\" onclick=\\\"location.href='file:///android_asset/"+id+"index.html';\\\"> <img src=\\\"file:///android_asset/"+id+"icon.png\\\"/><br/>" + gameName + "</div>";
+                tempContent += "<div class=\\\"iconButton\\\" onclick=\\\"location.href='file:///android_asset/" + id + "index.html';\\\"> <img src=\\\"file:///android_asset/" + id + "icon.png\\\"/><br/>" + gameName + "</div>";
             }
         }
 
 
-
-        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\""+tempContent+"\");");
+        MyWebView.loadUrl("javascript:goodeyeAPI.contentAdd(\"" + tempContent + "\");");
     }
 
     //----------------------------------------------------------------------------------------------
     public String buildPageTarget;
+
     public void BuildPage() {
         if (buildPageTarget.equals("startPage")) {
             BuildStartPage();
@@ -587,13 +671,13 @@ public class MainActivity extends AppCompatActivity {
     //          sub folders of these folders
     //----------------------------------------------------------------
     public List<String> GetSubFolders(String pathWithinAssets) {
-        String [] list;
+        String[] list;
         List<String> ret = new ArrayList<String>();
         try {
             list = getAssets().list(pathWithinAssets);
             if (list.length > 0) {
                 for (String file : list) {
-                    if(getAssets().list(pathWithinAssets+"/"+file).length > 0) {
+                    if (getAssets().list(pathWithinAssets + "/" + file).length > 0) {
                         ret.add(file);
                     }
                 }
@@ -604,7 +688,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String GetBookName(String bookID) {
-        String s = LoadString("books/"+bookID+"/bookinfo.txt");
+        String s = LoadString("books/" + bookID + "/bookinfo.txt");
         String[] lines = s.split("\n");
         for (String l : lines) {
             l = l.trim();
@@ -620,7 +704,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String GetChapterName(String bookID, String chapterID) {
-        String s = LoadString("books/"+bookID+"/"+chapterID+"/chapterinfo.txt");
+        String s = LoadString("books/" + bookID + "/" + chapterID + "/chapterinfo.txt");
         String[] lines = s.split("\n");
         for (String l : lines) {
             l = l.trim();
@@ -636,7 +720,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String GetSectionName(String bookID, String chapterID, String sectionID) {
-        String s = LoadString("books/"+bookID+"/"+chapterID+"/"+sectionID+"/sectioninfo.txt");
+        String s = LoadString("books/" + bookID + "/" + chapterID + "/" + sectionID + "/sectioninfo.txt");
         String[] lines = s.split("\n");
         for (String l : lines) {
             l = l.trim();
@@ -666,7 +750,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             in.close();
-        }catch (IOException e) {
+        } catch (IOException e) {
             //log the exception
         }
         return buf.toString();
@@ -674,10 +758,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     private WebView MyWebView;
+    private SurfaceView MyPhotoView;
+    private AlertDialog.Builder myMsgBox;
     //==============================================================================================
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //infoStorage = new DatenUse(this)
+
+        //TODO: REMOVE THIS LINE IN FINAL RELEASE VERSION !!!
+        infoStorage.ClearAllData();
+
         super.onCreate(savedInstanceState);
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -686,15 +777,44 @@ public class MainActivity extends AppCompatActivity {
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-
         //==========================================================================================
         MyWebView = (WebView) findViewById(R.id.webView);
+        MyWebView.getSettings().setDomStorageEnabled(true);
         MyWebView.setWebViewClient(new CustomWebViewClient());
         WebSettings webSettings = MyWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
         MyWebView.loadUrl("file:///android_asset/startscreen/index.html");
+
+
+        WebSettings settings = MyWebView.getSettings();
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setAllowUniversalAccessFromFileURLs(true);
         //==========================================================================================
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+
+        //MyPhotoView = (SurfaceView) findViewById(R.id.surfaceView);
+        //MyPhotoView.setVisibility(View.INVISIBLE);
+        //MyPhotoView.setVisibility(View.VISIBLE);
+        //dispatchTakePictureIntent(MyPhotoView);
+
+        myMsgBox = new AlertDialog.Builder(this);
+    }
+
+    public void Notify(String msg) {
+        myMsgBox.setMessage(msg);
+        myMsgBox.setTitle("Das gute Auge");
+        myMsgBox.setPositiveButton("Ok",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //dismiss the dialog
+                    }
+                });
+        myMsgBox.setCancelable(true);
+        myMsgBox.create().show();
     }
 
     @Override
@@ -766,4 +886,62 @@ public class MainActivity extends AppCompatActivity {
             OpenStartPage();
         }
     }
+
+    String mCurrentPhotoPath;
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
+    }
+
+    static final int REQUEST_TAKE_PHOTO = 1;
+
+    public void dispatchTakePictureIntent(View view) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        Intent takePictureIntent = new Intent(this,);
+
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+
+                String message = mCurrentPhotoPath;
+
+                // Create the text view
+                TextView textView = new TextView(this);
+                textView.setTextSize(40);
+                textView.setText(message);
+//                ImageView image=new ImageView(this);
+//                image.setImageBitmap();
+
+
+                // Set the text view as the activity layout
+                setContentView(textView);
+            }
+        }
+    }
+
 }

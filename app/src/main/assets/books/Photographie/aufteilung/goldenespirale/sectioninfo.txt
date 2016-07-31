@@ -1,0 +1,4 @@
+sectionname:Die Goldene Spirale
+page: page1
+page: try
+

@@ -1,4 +1,0 @@
-chaptername: Foo
-section: xyz
-section: abc
-

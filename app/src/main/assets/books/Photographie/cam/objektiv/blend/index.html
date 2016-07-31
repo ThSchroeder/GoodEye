@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+		<title>Das Gute Auge</title>
+
+		<!-- Bootstrap -->
+		<link href="../../../../../frontend/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../../../../../frontend/css/Mycss.css" rel="stylesheet">
+		<link href="../../../../../frontend/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+		
+		<!-- iframe stuff -->
+		<style>
+			.embed-container          { position: relative; padding-bottom: 56.25%; /* ratio 16x9 */ height: 0; overflow: hidden; width: 100%; height: auto; }
+			.embed-container iframe   { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+			.embed-container.ratio4x3 { padding-bottom: 75%; }
+		</style>
+	</head>
+	<body>
+		<script src="../../../../../goodeyeAPI.js"/></script>
+
+		<!-- Fluid Content -->
+		<div class="container-fluid">
+
+			<!-- Header -->
+			<div class="row header">
+				<p class="navi">
+					<span class="text-logo">Objektiv</span>
+				</p>
+			</div>
+
+			<!--Content -->
+			<div class="row">
+				<h4 style="margin-left:20px;">Blende</h4>
+				<!--
+				<div class="col-md-6">
+					<div class="embed-container">
+						<iframe width="560" height="315" src="html5/MonkeyGame.html" frameborder="0" allowfullscreen></iframe>
+					</div>
+				</div>
+				-->
+				<div class="col-md-6" style="width:width:800px; height:600px;">
+					<div class="embed-container" style="width:100%; height:100%;">
+						<iframe width="800" height="100%" src="html5/MonkeyGame.html" frameborder="0" allowfullscreen></iframe>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<p style="font-size: 2em; color: #000;">
+						Durch die Blende wird beeinflusst, wie viel Licht ins Innere und somit auf den Film – beziehungsweise den Sensor – fällt. Je weiter die Blende geöffnet ist, desto mehr Licht fällt ins Innere und desto heller erscheint das resultierende Bild. Eine kleinere Blendeneinstellung führt hingegen zu Bildern, die dunkler und insgesamt schärfer erscheinen.
+						<img src="blend.png" width="100%"/>
+					</p>
+				</div>
+			</div>
+			<!--Footer -->
+			<div class="row footer">
+				<div class="col-md-12">
+					<p class="text-left">
+					<a class="btn btn-success" role="button" onclick="goodeyeAPI.previousPage()">
+						<i class="fa fa-angle-left fa-1x"></i>	Zurück
+						<!--Back Button -->
+					</a>
+				</p>
+				<p class="text-right">
+					<a class="btn btn-success" role="button" id="confirm" onclick="goodeyeAPI.nextPage()">
+						Weiter <i class="fa fa-angle-right"></i>
+						<!--Next Button -->
+					</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	</body>
+</html>
